@@ -245,7 +245,7 @@ class _S3Accessor:
             'newline': newline,
         }
         transport_params = {'defer_seek': True}
-        if path.version_id is not None:
+        if hasattr(path, 'version_id') and path.version_id is not None:
             transport_params['version_id'] = path.version_id
         dummy_object = resource.Object('bucket', 'key')
         if smart_open.__version__ >= '5.1.0':
