@@ -755,11 +755,6 @@ class PureS3Path(PurePath):
     _flavour = _s3_flavour
     __slots__ = ()
 
-    def __new__(cls, *args, version_id=None):
-        self = super().__new__(cls, *args)
-        self.version_id = version_id
-        return self
-
     @classmethod
     def from_uri(cls, uri, version_id=None):
         """
