@@ -245,7 +245,7 @@ class _S3Accessor:
             'newline': newline,
         }
         transport_params = {'defer_seek': True}
-        if hasattr(path, 'version_id') and path.version_id is not None:
+        if path.version_id is not None:
             transport_params['version_id'] = path.version_id
         dummy_object = resource.Object('bucket', 'key')
         if smart_open.__version__ >= '5.1.0':
@@ -754,6 +754,11 @@ class PureS3Path(PurePath):
     """
     _flavour = _s3_flavour
     __slots__ = ()
+
+    def __new__(cls, *args, version_id=None):
+        self = super().__new__(cls, *args)
+        self.version_id = version_id
+        return self
 
     @classmethod
     def from_uri(cls, uri, version_id=None):
