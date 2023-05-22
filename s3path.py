@@ -1168,10 +1168,10 @@ class StatResult(namedtuple('BaseStatResult', 'size, last_modified, version_id',
 
 
 class S3DirEntry:
-    def __init__(self, name, is_dir, size=None, last_modified=None):
+    def __init__(self, name, is_dir, size=None, last_modified=None, version_id=None):
         self.name = name
         self._is_dir = is_dir
-        self._stat = StatResult(size=size, last_modified=last_modified)
+        self._stat = StatResult(size=size, last_modified=last_modified, version_id=version_id)
 
     def __repr__(self):
         return f'{type(self).__name__}(name={self.name}, is_dir={self._is_dir}, stat={self._stat})'
