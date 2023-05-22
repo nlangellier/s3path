@@ -39,6 +39,7 @@ def test_stat(s3_mock):
     assert stat == StatResult(
         size=object_summary.size,
         last_modified=object_summary.last_modified,
+        version_id=None,
     )
 
     with NamedTemporaryFile() as local_file:
