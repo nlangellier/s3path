@@ -1144,7 +1144,7 @@ class S3Path(_PathNotSupportedMixin, Path, PureS3Path):
         raise ValueError("Absolute path can't be determined for relative S3Path objects")
 
 
-class StatResult(namedtuple('BaseStatResult', 'size, last_modified, version_id')):
+class StatResult(namedtuple('BaseStatResult', 'size, last_modified, version_id', defaults=(None,))):
     """
     Base of os.stat_result but with boto3 s3 features
     """
