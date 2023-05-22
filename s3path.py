@@ -194,6 +194,7 @@ class _S3Accessor:
             return StatResult(
                 size=object_summary.size,
                 last_modified=object_summary.last_modified,
+                version_id=None,
             )
         else:
             object_summary = resource.ObjectVersion(path.bucket, path.key, path.version_id).get()
