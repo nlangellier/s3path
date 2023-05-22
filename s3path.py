@@ -189,20 +189,21 @@ class _S3Accessor:
             raise NotImplementedError(
                 f'Setting follow_symlinks to {follow_symlinks} is unsupported on S3 service.')
         resource, _ = self.configuration_map.get_configuration(path)
-        if path.version_id is None:
-            object_summary = resource.ObjectSummary(path.bucket, path.key)
-            return StatResult(
-                size=object_summary.size,
-                last_modified=object_summary.last_modified,
-                version_id=None,
-            )
-        else:
+
+        if hasattr(path, 'version_id') and path.version_id is not None:
             object_summary = resource.ObjectVersion(path.bucket, path.key, path.version_id).get()
             return StatResult(
                 size=object_summary['ContentLength'],
                 last_modified=object_summary['LastModified'],
                 version_id=object_summary['VersionId'],
             )
+
+        object_summary = resource.ObjectSummary(path.bucket, path.key)
+        return StatResult(
+            size=object_summary.size,
+            last_modified=object_summary.last_modified,
+            version_id=None,
+        )
 
     def is_dir(self, path):
         if str(path) == path.root:
