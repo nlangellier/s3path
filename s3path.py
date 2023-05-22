@@ -189,11 +189,20 @@ class _S3Accessor:
             raise NotImplementedError(
                 f'Setting follow_symlinks to {follow_symlinks} is unsupported on S3 service.')
         resource, _ = self.configuration_map.get_configuration(path)
-        object_summary = resource.ObjectSummary(path.bucket, path.key)
-        return StatResult(
-            size=object_summary.size,
-            last_modified=object_summary.last_modified,
-        )
+        if path.version_id is None:
+            object_summary = resource.ObjectSummary(path.bucket, path.key)
+            return StatResult(
+                size=object_summary.size,
+                last_modified=object_summary.last_modified,
+                version_id=None,
+            )
+        else:
+            object_summary = resource.ObjectVersion(path.bucket, path.key, path.version_id).get()
+            return StatResult(
+                size=object_summary['ContentLength'],
+                last_modified=object_summary['LastModified'],
+                version_id=object_summary['VersionId'],
+            )
 
     def is_dir(self, path):
         if str(path) == path.root:
@@ -1135,7 +1144,7 @@ class S3Path(_PathNotSupportedMixin, Path, PureS3Path):
         raise ValueError("Absolute path can't be determined for relative S3Path objects")
 
 
-class StatResult(namedtuple('BaseStatResult', 'size, last_modified')):
+class StatResult(namedtuple('BaseStatResult', 'size, last_modified, version_id')):
     """
     Base of os.stat_result but with boto3 s3 features
     """
@@ -1152,6 +1161,10 @@ class StatResult(namedtuple('BaseStatResult', 'size, last_modified')):
     @property
     def st_mtime(self):
         return self.last_modified.timestamp()
+
+    @property
+    def st_version_id(self):
+        return self.version_id
 
 
 class S3DirEntry:
