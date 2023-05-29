@@ -776,14 +776,14 @@ class PureS3Path(PurePath):
         if not uri.startswith('s3://'):
             raise ValueError('Provided uri seems to be no S3 URI!')
             
-		uri, *version_id = uri.split('?VersionID=')
+        uri, *version_id = uri.split('?VersionID=')
 
-		if len(version_id) > 1:
-			raise ValueError('Do you use "?VersionID=" in your bucket or key?')
-		elif len(version_id) == 0:
+        if len(version_id) > 1:
+            raise ValueError('Do you use "?VersionID=" in your bucket or key?')
+        elif len(version_id) == 0:
 			version_id = None
-		else:
-			version_id = version_id[0]
+        else:
+            version_id = version_id[0]
 
         self = cls(uri[4:])
         self.version_id = version_id
