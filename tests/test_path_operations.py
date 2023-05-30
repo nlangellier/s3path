@@ -705,3 +705,21 @@ def test_absolute(s3_mock):
     relative_path = S3Path('./Test.test')
     with pytest.raises(ValueError):
         relative_path.absolute()
+
+def test_versioned_bucket(s3_mock):
+    bucket, key = 'test-bucket', 'versioned_file.txt'
+    content1 = b'This the first version of this file'
+    content2 = b'This the second version of this file'
+
+    s3 = boto3.resource('s3')
+    s3.create_bucket(Bucket=bucket)
+    s3.BucketVersioning(bucket).enable()
+
+    object_summary = s3.ObjectSummary(bucket, key)
+    upload_response_1 = object_summary.put(Body=content1)
+    upload_response_2 = object_summary.put(Body=content2)
+
+    for upload_response, content in ([upload_response_1, upload_response_2], [content1, content2]):
+        path = S3Path.from_uri(f's3://{bucket}/{key}?VersionID={upload_response["VersionId"]}')
+        with path.open(mode='rb') as file_pointer:
+            assert file_pointer.read() == content
