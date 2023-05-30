@@ -781,7 +781,7 @@ class PureS3Path(PurePath):
         if len(version_id) > 1:
             raise ValueError('Do you use "?VersionID=" in your bucket or key?')
         elif len(version_id) == 0:
-			version_id = None
+            version_id = None
         else:
             version_id = version_id[0]
 
