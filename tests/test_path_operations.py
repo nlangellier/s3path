@@ -720,6 +720,12 @@ def test_versioned_bucket(s3_mock):
     upload_response_2 = object_summary.put(Body=content2)
 
     for upload_response, content in ((upload_response_1, content1), (upload_response_2, content2)):
-        path = S3Path.from_uri(f's3://{bucket}/{key}?VersionID={upload_response["VersionId"]}')
-        with path.open(mode='rb') as file_pointer:
-            assert file_pointer.read() == content
+        path_1 = S3Path.from_uri(f's3://{bucket}/{key}?VersionID={upload_response["VersionId"]}')
+        path_2 = S3Path.from_bucket_key_versionid(
+            bucket=bucket,
+            key=key,
+            version_id=upload_response["VersionId"],
+        )
+        for path in (path_1, path_2):
+            with path.open(mode='rb') as file_pointer:
+                assert file_pointer.read() == content
