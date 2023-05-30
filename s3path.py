@@ -818,7 +818,24 @@ class PureS3Path(PurePath):
         return key
 
     @classmethod
-    def from_bucket_key(cls, bucket, key, version_id=None):
+    def from_bucket_key(cls, bucket):
+        """
+        from_bucket_key class method create a class instance from bucket, key pair's
+
+        >> from s3path import PureS3Path
+        >> PureS3Path.from_bucket_key(bucket='<bucket>', key='<key>')
+        << PureS3Path('/<bucket>/<key>')
+        """
+        bucket = cls(cls._flavour.sep, bucket)
+        if len(bucket.parts) != 2:
+            raise ValueError(f'bucket argument contains more then one path element: {bucket}')
+        key = cls(key)
+        if key.is_absolute():
+            key = key.relative_to('/')
+        self = bucket / key
+        return self
+        
+    def from_bucket_key_versionid(cls, bucket, key, version_id=None):
         """
         from_bucket_key class method create a class instance from bucket, key pair's
 
