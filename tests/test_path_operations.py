@@ -719,7 +719,7 @@ def test_versioned_bucket(s3_mock):
     upload_response_1 = object_summary.put(Body=content1)
     upload_response_2 = object_summary.put(Body=content2)
 
-    for upload_response, content in ([upload_response_1, upload_response_2], [content1, content2]):
+    for upload_response, content in ((upload_response_1, content1), (upload_response_2, content2)):
         path = S3Path.from_uri(f's3://{bucket}/{key}?VersionID={upload_response["VersionId"]}')
         with path.open(mode='rb') as file_pointer:
             assert file_pointer.read() == content
