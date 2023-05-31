@@ -706,27 +706,40 @@ def test_absolute(s3_mock):
     with pytest.raises(ValueError):
         relative_path.absolute()
 
+
 def test_versioned_bucket(s3_mock):
-    bucket, key = 'test-bucket', 'versioned_file.txt'
-    content_1 = b'This the first version of this file'
-    content_2 = b'This the second version of this file'
+    bucket, key = 'test-versioned-bucket', 'versioned_file.txt'
 
     s3 = boto3.resource('s3')
     s3.create_bucket(Bucket=bucket)
     s3.BucketVersioning(bucket).enable()
 
     object_summary = s3.ObjectSummary(bucket, key)
-    version_id_1 = object_summary.put(Body=content_1).get("VersionId")
-    version_id_2 = object_summary.put(Body=content_2).get("VersionId")
+    file_contents_by_version = (b'Test', b'Test updated', b'Test', b'Test final')
 
-    content_to_version_id_map = {
-        content_1: version_id_1,
-        content_2: version_id_2,
-    }
+    version_id_to_file_content = {}
+    for file_content in file_contents_by_version:
+        version_id = object_summary.put(Body=file_content).get("VersionId")
+        version_id_to_file_content[version_id] = file_content
 
-    for content, version_id in content_to_version_id_map.items():
-        path_1 = S3Path.from_uri(f's3://{bucket}/{key}?VersionID={version_id}')
-        path_2 = S3Path.from_bucket_key_versionid(bucket=bucket, key=key, version_id=version_id)
-        for path in (path_1, path_2):
-            with path.open(mode='rb') as file_pointer:
-                assert file_pointer.read() == content
+    assert len(version_id_to_file_content) == 4
+
+    def assert_expected_file_content(s3_paths: tuple[S3Path, ...], expected_file_content: bytes):
+        for s3_path in s3_paths:
+            with s3_path.open(mode='rb') as file_pointer:
+                assert file_pointer.read() == expected_file_content
+
+    # Test that we can read specific versions of the file
+    for version_id, file_content in version_id_to_file_content.items():
+        paths = (
+            S3Path.from_uri(f's3://{bucket}/{key}?VersionID={version_id}'),
+            S3Path.from_bucket_key_versionid(bucket=bucket, key=key, version_id=version_id),
+        )
+        assert_expected_file_content(s3_paths=paths, expected_file_content=file_content)
+
+    # Test that we receive the latest version of the file when no version_id is specified
+    paths = (
+        S3Path.from_uri(f's3://{bucket}/{key}'),
+        S3Path.from_bucket_key(bucket=bucket, key=key),
+    )
+    assert_expected_file_content(s3_paths=paths, expected_file_content=file_contents_by_version[-1])
