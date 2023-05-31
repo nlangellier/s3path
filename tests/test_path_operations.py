@@ -724,7 +724,7 @@ def test_versioned_bucket(s3_mock):
 
     assert len(version_id_to_file_content) == 4
 
-    def assert_expected_file_content(s3_paths: tuple[S3Path, ...], expected_file_content: bytes):
+    def assert_expected_file_content(s3_paths, expected_file_content):
         for s3_path in s3_paths:
             with s3_path.open(mode='rb') as file_pointer:
                 assert file_pointer.read() == expected_file_content
