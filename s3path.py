@@ -872,7 +872,17 @@ class S3Path(_PathNotSupportedMixin, Path, PureS3Path):
     _accessor = _s3_accessor
     __slots__ = ()
 
-    def __new__(cls, *args, version_id=None, **kwargs):
+    def __new__(cls, *args, **kwargs):
+        
+        args, *version_id = args.split('?VersionID=')
+
+        if len(version_id) > 1:
+            raise ValueError('Do you use "?VersionID=" in your bucket or key?')
+        elif len(version_id) == 0:
+            version_id = None
+        else:
+            version_id = version_id[0]
+        
         self = super().__new__(cls, *args, **kwargs)
         self.version_id = version_id
         return self
