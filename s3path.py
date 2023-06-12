@@ -13,6 +13,7 @@ from platform import python_version
 from collections import namedtuple, deque
 from io import DEFAULT_BUFFER_SIZE, UnsupportedOperation
 from pathlib import _PosixFlavour, _is_wildcard_pattern, PurePath, Path
+from typing import Any
 
 import boto3
 from boto3.s3.transfer import TransferManager
@@ -26,6 +27,7 @@ __version__ = '0.4.1'
 __all__ = (
     'register_configuration_parameter',
     'S3Path',
+    'VersionedS3Path',
     'PureS3Path',
     'StatResult',
     'S3DirEntry',
@@ -189,10 +191,16 @@ class _S3Accessor:
             raise NotImplementedError(
                 f'Setting follow_symlinks to {follow_symlinks} is unsupported on S3 service.')
         resource, _ = self.configuration_map.get_configuration(path)
-        object_summary = resource.ObjectSummary(path.bucket, path.key)
+
+        if hasattr(path, 'version_id') and (path.version_id is not None):
+            object_summary = resource.ObjectVersion(path.bucket, path.key, path.version_id).get()
+        else:
+            object_summary = resource.ObjectSummary(path.bucket, path.key).get()
+
         return StatResult(
-            size=object_summary.size,
-            last_modified=object_summary.last_modified,
+            size=object_summary.get('ContentLength'),
+            last_modified=object_summary.get('LastModified'),
+            version_id=object_summary.get('VersionId'),
         )
 
     def is_dir(self, path):
@@ -245,6 +253,8 @@ class _S3Accessor:
             'newline': newline,
         }
         transport_params = {'defer_seek': True}
+        if hasattr(path, 'version_id') and (path.version_id is not None):
+            transport_params['version_id'] = path.version_id
         dummy_object = resource.Object('bucket', 'key')
         if smart_open.__version__ >= '5.1.0':
             self._smart_open_new_version_kwargs(
@@ -1124,7 +1134,7 @@ class S3Path(_PathNotSupportedMixin, Path, PureS3Path):
         raise ValueError("Absolute path can't be determined for relative S3Path objects")
 
 
-class StatResult(namedtuple('BaseStatResult', 'size, last_modified')):
+class StatResult(namedtuple('BaseStatResult', 'size, last_modified, version_id', defaults=(None,))):
     """
     Base of os.stat_result but with boto3 s3 features
     """
@@ -1142,12 +1152,16 @@ class StatResult(namedtuple('BaseStatResult', 'size, last_modified')):
     def st_mtime(self):
         return self.last_modified.timestamp()
 
+    @property
+    def st_version_id(self):
+        return self.version_id
+
 
 class S3DirEntry:
-    def __init__(self, name, is_dir, size=None, last_modified=None):
+    def __init__(self, name, is_dir, size=None, last_modified=None, version_id=None):
         self.name = name
         self._is_dir = is_dir
-        self._stat = StatResult(size=size, last_modified=last_modified)
+        self._stat = StatResult(size=size, last_modified=last_modified, version_id=version_id)
 
     def __repr__(self):
         return f'{type(self).__name__}(name={self.name}, is_dir={self._is_dir}, stat={self._stat})'
