@@ -2,12 +2,13 @@ import sys
 from pathlib import Path
 from io import UnsupportedOperation
 from tempfile import NamedTemporaryFile
+from typing import Tuple
 
 import boto3
 from botocore.exceptions import ClientError
 import pytest
 
-from s3path import PureS3Path, S3Path, StatResult
+from s3path import PureS3Path, S3Path, StatResult, VersionedS3Path
 
 # todo: test samefile/touch method
 # todo: test security and boto config changes
@@ -705,3 +706,42 @@ def test_absolute(s3_mock):
     relative_path = S3Path('./Test.test')
     with pytest.raises(ValueError):
         relative_path.absolute()
+
+
+def test_versioned_bucket(s3_mock):
+    bucket, key = 'test-versioned-bucket', 'versioned_file.txt'
+
+    s3 = boto3.resource('s3')
+    s3.create_bucket(Bucket=bucket)
+    s3.BucketVersioning(bucket).enable()
+
+    object_summary = s3.ObjectSummary(bucket, key)
+    file_contents_by_version = (b'Test', b'Test updated', b'Test', b'Test final')
+
+    version_id_to_file_content = {}
+    for file_content in file_contents_by_version:
+        version_id = object_summary.put(Body=file_content).get('VersionId')
+        version_id_to_file_content[version_id] = file_content
+
+    assert len(version_id_to_file_content) == len(file_contents_by_version)
+
+    def assert_expected_file_content(s3_paths: Tuple[S3Path, ...], expected_file_content: bytes) -> None:
+        for s3_path in s3_paths:
+            assert s3_path.read_bytes() == expected_file_content
+
+    # Test that we can read specific versions of the file
+    for version_id, file_content in version_id_to_file_content.items():
+        versioned_paths = (
+            VersionedS3Path(f'/{bucket}/{key}', version_id=version_id),
+            VersionedS3Path.from_uri(f's3://{bucket}/{key}', version_id=version_id),
+            VersionedS3Path.from_bucket_key(bucket=bucket, key=key, version_id=version_id),
+        )
+        assert_expected_file_content(s3_paths=versioned_paths, expected_file_content=file_content)
+
+    # Test that we receive the latest version of the file when S3Path is used
+    paths = (
+        S3Path(f'/{bucket}/{key}'),
+        S3Path.from_uri(f's3://{bucket}/{key}'),
+        S3Path.from_bucket_key(bucket=bucket, key=key),
+    )
+    assert_expected_file_content(s3_paths=paths, expected_file_content=file_contents_by_version[-1])
