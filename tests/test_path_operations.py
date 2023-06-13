@@ -796,6 +796,7 @@ def test_versioned_bucket(s3_mock):
     for version_id, file_content in version_id_to_file_content.items():
         versioned_paths = (
             VersionedS3Path(f'/{bucket}/{key}', version_id=version_id),
+            VersionedS3Path(f'/{bucket}', f'{key}', version_id=version_id),
             VersionedS3Path.from_uri(f's3://{bucket}/{key}', version_id=version_id),
             VersionedS3Path.from_bucket_key(bucket=bucket, key=key, version_id=version_id),
         )
@@ -804,6 +805,7 @@ def test_versioned_bucket(s3_mock):
     # Test that we receive the latest version of the file when S3Path is used
     paths = (
         S3Path(f'/{bucket}/{key}'),
+        S3Path(f'/{bucket}', f'{key}'),
         S3Path.from_uri(f's3://{bucket}/{key}'),
         S3Path.from_bucket_key(bucket=bucket, key=key),
     )
