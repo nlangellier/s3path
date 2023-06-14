@@ -43,6 +43,7 @@ def test_stat(s3_mock):
     assert stat == StatResult(
         size=object_summary.size,
         last_modified=object_summary.last_modified,
+        version_id=None,
     )
 
     with NamedTemporaryFile() as local_file:
@@ -788,19 +789,17 @@ def test_versioned_bucket(s3_mock):
 
     assert len(version_id_to_file_content) == len(file_contents_by_version)
 
-    def assert_expected_file_content(s3_paths: Tuple[S3Path, ...], expected_file_content: bytes) -> None:
-        for s3_path in s3_paths:
-            assert s3_path.read_bytes() == expected_file_content
-
     # Test that we can read specific versions of the file
-    for version_id, file_content in version_id_to_file_content.items():
+    for version_id, expected_file_content in version_id_to_file_content.items():
         versioned_paths = (
             VersionedS3Path(f'/{bucket}/{key}', version_id=version_id),
             VersionedS3Path(f'/{bucket}', f'{key}', version_id=version_id),
-            VersionedS3Path.from_uri(f's3://{bucket}/{key}', version_id=version_id),
-            VersionedS3Path.from_bucket_key(bucket=bucket, key=key, version_id=version_id),
+            VersionedS3Path.from_uri_version(f's3://{bucket}/{key}', version_id=version_id),
+            VersionedS3Path.from_bucket_key_version(bucket=bucket, key=key, version_id=version_id),
         )
-        assert_expected_file_content(s3_paths=versioned_paths, expected_file_content=file_content)
+        for versioned_path in versioned_paths:
+            assert versioned_path.read_bytes() == expected_file_content
+            assert versioned_path.stat().st_version_id == version_id
 
     # Test that we receive the latest version of the file when S3Path is used
     paths = (
@@ -809,4 +808,5 @@ def test_versioned_bucket(s3_mock):
         S3Path.from_uri(f's3://{bucket}/{key}'),
         S3Path.from_bucket_key(bucket=bucket, key=key),
     )
-    assert_expected_file_content(s3_paths=paths, expected_file_content=file_contents_by_version[-1])
+    for path in paths:
+        assert path.read_bytes() == file_contents_by_version[-1]
