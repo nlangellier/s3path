@@ -794,19 +794,25 @@ def test_versioned_bucket(s3_mock):
         versioned_paths = (
             VersionedS3Path(f'/{bucket}/{key}', version_id=version_id),
             VersionedS3Path(f'/{bucket}', f'{key}', version_id=version_id),
-            VersionedS3Path.from_uri_version(f's3://{bucket}/{key}', version_id=version_id),
-            VersionedS3Path.from_bucket_key_version(bucket=bucket, key=key, version_id=version_id),
+            VersionedS3Path.from_uri(f's3://{bucket}/{key}', version_id=version_id),
+            VersionedS3Path.from_bucket_key(bucket=bucket, key=key, version_id=version_id),
         )
         for versioned_path in versioned_paths:
-            assert versioned_path.read_bytes() == expected_file_content
+            assert versioned_path.exists() and versioned_path.is_file()
             assert versioned_path.stat().st_version_id == version_id
+            assert versioned_path.read_bytes() == expected_file_content
 
-    # Test that we receive the latest version of the file when S3Path is used
+    # Test that we receive the latest version of the file when S3Path is used or no version_id is specified
     paths = (
         S3Path(f'/{bucket}/{key}'),
         S3Path(f'/{bucket}', f'{key}'),
         S3Path.from_uri(f's3://{bucket}/{key}'),
         S3Path.from_bucket_key(bucket=bucket, key=key),
+        VersionedS3Path(f'/{bucket}/{key}'),
+        VersionedS3Path(f'/{bucket}', f'{key}'),
+        VersionedS3Path.from_uri(f's3://{bucket}/{key}'),
+        VersionedS3Path.from_bucket_key(bucket=bucket, key=key),
     )
     for path in paths:
+        assert not isinstance(path, VersionedS3Path)
         assert path.read_bytes() == file_contents_by_version[-1]
