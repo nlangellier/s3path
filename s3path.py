@@ -193,7 +193,7 @@ class _S3Accessor:
                 f'Setting follow_symlinks to {follow_symlinks} is unsupported on S3 service.')
         resource, _ = self.configuration_map.get_configuration(path)
 
-        if hasattr(path, 'version_id') and (path.version_id is not None):
+        if hasattr(path, 'version_id'):
             object_summary = resource.ObjectVersion(path.bucket, path.key, path.version_id).get()
         else:
             object_summary = resource.ObjectSummary(path.bucket, path.key).get()
@@ -228,7 +228,11 @@ class _S3Accessor:
                 raise e
         bucket = resource.Bucket(bucket_name)
         key_name = str(path.key)
-        for object in bucket.objects.filter(Prefix=key_name):
+        for object in bucket.object_versions.filter(Prefix=key_name):
+            if hasattr(path, "version_id"):
+                if object.version_id == path.version_id:
+                    return True
+                continue
             if object.key == key_name:
                 return True
             if object.key.startswith(key_name + path._flavour.sep):
@@ -254,8 +258,8 @@ class _S3Accessor:
             'newline': newline,
         }
         transport_params = {'defer_seek': True}
-        if hasattr(path, 'version_id') and (path.version_id is not None):
-            transport_params['version_id'] = path.version_id
+        if hasattr(path, 'version_id'):
+            transport_params.update(version_id=path.version_id)
         dummy_object = resource.Object('bucket', 'key')
         if smart_open.__version__ >= '5.1.0':
             self._smart_open_new_version_kwargs(
