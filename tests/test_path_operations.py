@@ -4,7 +4,6 @@ from datetime import timedelta
 from pathlib import Path
 from io import UnsupportedOperation
 from tempfile import NamedTemporaryFile
-from typing import Tuple
 
 import boto3
 import requests
