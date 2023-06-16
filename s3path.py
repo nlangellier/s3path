@@ -1190,6 +1190,18 @@ class S3Path(_PathNotSupportedMixin, Path, PureS3Path):
         return self._accessor.get_presigned_url(self, expire_in)
 
 
+class VersionedS3Path(S3Path):
+
+    def __new__(cls, *args, version_id = None, **kwargs):
+        if version_id is None:
+            return S3Path(*args, **kwargs)
+        else:
+            return super().__new__(cls, *args, **kwargs)
+        
+    def __init__(self, *args, version_id, **kwargs):
+            self.version_id = version_id
+
+
 class StatResult(namedtuple('BaseStatResult', 'size, last_modified, version_id', defaults=(None,))):
     """
     Base of os.stat_result but with boto3 s3 features
