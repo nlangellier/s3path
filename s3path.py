@@ -1196,14 +1196,36 @@ class S3Path(_PathNotSupportedMixin, Path, PureS3Path):
 
 class VersionedS3Path(S3Path):
 
-    def __new__(cls, *args, version_id = None, **kwargs):
+    def __new__(cls, *args, version_id=None, **kwargs):
         if version_id is None:
             return S3Path(*args, **kwargs)
         else:
             return super().__new__(cls, *args, **kwargs)
         
     def __init__(self, *args, version_id, **kwargs):
-            self.version_id = version_id
+        self.version_id = version_id
+    
+    @classmethod
+    def from_uri(cls, uri, version_id=None):
+        """
+        """
+        self = S3Path.from_uri(uri)
+        cls._from_s3_path(s3_path=self, version_id=version_id)
+    
+    @classmethod
+    def from_bucket_key(cls, bucket, key, version_id=None):
+        """
+        """
+        self = S3Path.from_bucket_key(bucket, key)
+        cls._from_s3_path(s3_path=self, version_id=version_id)
+    
+    @classmethod
+    def _from_s3_path(cls, s3_path, version_id=None):
+        if version_id is None:
+            return s3_path
+        else:
+            return cls(s3_path, version_id=version_id)   
+    
 
 
 class StatResult(namedtuple('BaseStatResult', 'size, last_modified, version_id', defaults=(None,))):
