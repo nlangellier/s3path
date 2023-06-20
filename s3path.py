@@ -1199,40 +1199,39 @@ class VersionedS3Path(S3Path):
             return S3Path(*args, **kwargs)
         else:
             return super().__new__(cls, *args, **kwargs)
-        
+
     def __init__(self, *args: Union[str, Path], version_id: str, **kwargs: Any) -> None:
         if not self.is_absolute():
             raise ValueError(f"{type(self).__name__} doesn't support relative path")
         if not self.key:
             raise ValueError(f'{type(self).__name__} requires a key')
         self.version_id = version_id
-    
+
     def __repr__(self) -> str:
         return f'{type(self).__name__}("/{self.bucket}/{self.key}", version_id="{self.version_id}")'
-    
+
     @classmethod
-    def from_uri(cls, uri: str, version_id: Optional[str] = None) -> Union['VersionedS3Path', S3Path]:
+    def from_uri(cls, uri: str, version_id: Optional[str] = None) -> Union[S3Path, 'VersionedS3Path']:
         """
         """
         self = S3Path.from_uri(uri)
-        cls._from_s3_path(s3_path=self, version_id=version_id)
-    
+        return cls._from_s3_path(s3_path=self, version_id=version_id)
+
     @classmethod
     def from_bucket_key(
         cls, bucket: str, key: str, version_id: Optional[str] = None
-    ) -> Union['VersionedS3Path', S3Path]:
+    ) -> Union[S3Path, 'VersionedS3Path']:
         """
         """
         self = S3Path.from_bucket_key(bucket, key)
-        cls._from_s3_path(s3_path=self, version_id=version_id)
-    
+        return cls._from_s3_path(s3_path=self, version_id=version_id)
+
     @classmethod
     def _from_s3_path(cls, s3_path, version_id=None):
         if version_id is None:
             return s3_path
         else:
-            return cls(s3_path, version_id=version_id)   
-    
+            return cls(s3_path, version_id=version_id)
 
 
 class StatResult(namedtuple('BaseStatResult', 'size, last_modified, version_id', defaults=(None,))):
