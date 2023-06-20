@@ -1215,7 +1215,7 @@ class VersionedS3Path(S3Path):
         return f'{type(self).__name__}("/{self.bucket}/{self.key}", version_id="{self.version_id}")'
     
     @classmethod
-    def from_uri(cls, uri: str, version_id: Optional[str] = None) -> Union[VersionedS3Path, S3Path]:
+    def from_uri(cls, uri: str, version_id: Optional[str] = None) -> Union['VersionedS3Path', S3Path]:
         """
         """
         self = S3Path.from_uri(uri)
@@ -1224,7 +1224,7 @@ class VersionedS3Path(S3Path):
     @classmethod
     def from_bucket_key(
         cls, bucket: str, key: str, version_id: Optional[str] = None
-    ) -> Union[VersionedS3Path, S3Path]:
+    ) -> Union['VersionedS3Path', S3Path]:
         """
         """
         self = S3Path.from_bucket_key(bucket, key)
