@@ -4,7 +4,7 @@ s3path provides a Pythonic API to S3 by wrapping boto3 with pathlib interface
 import re
 import sys
 import fnmatch
-from typing import Any, Union
+from typing import Any, Union, Optional
 from datetime import timedelta
 from os import stat_result
 from threading import Lock
@@ -1196,24 +1196,35 @@ class S3Path(_PathNotSupportedMixin, Path, PureS3Path):
 
 class VersionedS3Path(S3Path):
 
-    def __new__(cls, *args, version_id=None, **kwargs):
+    def __new__(
+        cls, *args: Union[str, Path], version_id: Optional[str] = None, **kwargs: Any
+    ) -> Union[S3Path, 'VersionedS3Path']:
         if version_id is None:
             return S3Path(*args, **kwargs)
         else:
             return super().__new__(cls, *args, **kwargs)
         
-    def __init__(self, *args, version_id, **kwargs):
+    def __init__(self, *args: Union[str, Path], version_id: str, **kwargs: Any) -> None:
+        if not self.is_absolute():
+            raise ValueError(f"{type(self).__name__} doesn't support relative path")
+        if not self.key:
+            raise ValueError(f'{type(self).__name__} requires a key')
         self.version_id = version_id
     
+    def __repr__(self) -> str:
+        return f'{type(self).__name__}("/{self.bucket}/{self.key}", version_id="{self.version_id}")'
+    
     @classmethod
-    def from_uri(cls, uri, version_id=None):
+    def from_uri(cls, uri: str, version_id: Optional[str] = None) -> Union[VersionedS3Path, S3Path]:
         """
         """
         self = S3Path.from_uri(uri)
         cls._from_s3_path(s3_path=self, version_id=version_id)
     
     @classmethod
-    def from_bucket_key(cls, bucket, key, version_id=None):
+    def from_bucket_key(
+        cls, bucket: str, key: str, version_id: Optional[str] = None
+    ) -> Union[VersionedS3Path, S3Path]:
         """
         """
         self = S3Path.from_bucket_key(bucket, key)
