@@ -1193,14 +1193,14 @@ class S3Path(_PathNotSupportedMixin, Path, PureS3Path):
 class VersionedS3Path(S3Path):
 
     def __new__(
-        cls, *args: Union[str, Path], version_id: Optional[str] = None, **kwargs: Any
+        cls, *args: Union[str, Path], version_id: Optional[str] = None
     ) -> Union[S3Path, 'VersionedS3Path']:
         if version_id is None:
-            return S3Path(*args, **kwargs)
+            return S3Path(*args)
         else:
-            return super().__new__(cls, *args, **kwargs)
+            return super().__new__(cls, *args)
 
-    def __init__(self, *args: Union[str, Path], version_id: str, **kwargs: Any) -> None:
+    def __init__(self, *args: Union[str, Path], version_id: str) -> None:
         if not self.is_absolute():
             raise ValueError(f"{type(self).__name__} doesn't support relative path")
         if not self.key:
