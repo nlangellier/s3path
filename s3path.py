@@ -1208,7 +1208,10 @@ class S3DirEntry:
     def inode(self, *args, **kwargs):
         return None
 
-    def is_dir(self):
+    def is_dir(self, *, follow_symlinks=True):
+        if not follow_symlinks:
+            raise NotImplementedError(
+                f'Setting follow_symlinks to {follow_symlinks} is unsupported on S3 service.')
         return self._is_dir
 
     def is_file(self):
