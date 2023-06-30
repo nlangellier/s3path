@@ -1207,7 +1207,7 @@ class VersionedS3Path(S3Path):
         >> VersionedS3Path('/<bucket>/<key>', '<version_id>')
         << VersionedS3Path('/<bucket>/<key>', '<version_id>')
         """
-        
+
         if not self.is_absolute():
             raise ValueError(f"{type(self).__name__} doesn't support relative path")
         if not self.key:
@@ -1226,7 +1226,7 @@ class VersionedS3Path(S3Path):
         >> VersionedS3Path.from_uri('s3://<bucket>/<key>', '<version_id>')
         << VersionedS3Path('/<bucket>/<key>', '<version_id>')
         """
-        
+
         self = S3Path.from_uri(uri)
         return cls._from_s3_path(s3_path=self, version_id=version_id)
 
@@ -1241,7 +1241,7 @@ class VersionedS3Path(S3Path):
         >> VersionedS3Path.from_bucket_key('<bucket>', '<key>', '<version_id>')
         << VersionedS3Path('/<bucket>/<key>', '<version_id>')
         """
-        
+
         self = S3Path.from_bucket_key(bucket, key)
         return cls._from_s3_path(s3_path=self, version_id=version_id)
 
