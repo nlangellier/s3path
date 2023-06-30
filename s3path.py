@@ -1200,6 +1200,14 @@ class VersionedS3Path(S3Path):
             return super().__new__(cls, *args)
 
     def __init__(self, *args: Union[str, Path], version_id: str) -> None:
+        """
+        __init__ instance method create a class instance from path and version id
+
+        >> from s3path import VersionedS3Path
+        >> VersionedS3Path('/<bucket>/<key>', '<version_id>')
+        << VersionedS3Path('/<bucket>/<key>', '<version_id>')
+        """
+        
         if not self.is_absolute():
             raise ValueError(f"{type(self).__name__} doesn't support relative path")
         if not self.key:
@@ -1212,7 +1220,13 @@ class VersionedS3Path(S3Path):
     @classmethod
     def from_uri(cls, uri: str, version_id: Optional[str] = None) -> Union[S3Path, 'VersionedS3Path']:
         """
+        from_uri class method create a class instance from uri and version id
+
+        >> from s3path import VersionedS3Path
+        >> VersionedS3Path.from_uri('s3://<bucket>/<key>', '<version_id>')
+        << VersionedS3Path('/<bucket>/<key>', '<version_id>')
         """
+        
         self = S3Path.from_uri(uri)
         return cls._from_s3_path(s3_path=self, version_id=version_id)
 
@@ -1221,7 +1235,13 @@ class VersionedS3Path(S3Path):
         cls, bucket: str, key: str, version_id: Optional[str] = None
     ) -> Union[S3Path, 'VersionedS3Path']:
         """
+        from_bucket_key class method create a class instance from bucket, key and version id
+
+        >> from s3path import VersionedS3Path
+        >> VersionedS3Path.from_bucket_key('<bucket>', '<key>', '<version_id>')
+        << VersionedS3Path('/<bucket>/<key>', '<version_id>')
         """
+        
         self = S3Path.from_bucket_key(bucket, key)
         return cls._from_s3_path(s3_path=self, version_id=version_id)
 
