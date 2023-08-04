@@ -1315,6 +1315,11 @@ class VersionedS3Path(PureVersionedS3Path, S3Path):
     def __repr__(self) -> str:
         return f'{type(self).__name__}("{self.as_posix()}", version_id="{self.version_id}")'
 
+    def _init(self, template=None):
+        super()._init(template)
+        if template is None:
+            self._accessor = _versioned_s3_accessor
+
 
 class StatResult(namedtuple('BaseStatResult', 'size, last_modified, version_id', defaults=(None,))):
     """
