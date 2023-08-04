@@ -6,7 +6,7 @@ s3path provides a Pythonic API to S3 by wrapping boto3 with pathlib interface
 import re
 import sys
 import fnmatch
-from typing import Any, Union, Generator, Literal, Optional
+from typing import Union, Generator, Literal, Optional
 from datetime import timedelta
 from os import stat_result
 from threading import Lock
