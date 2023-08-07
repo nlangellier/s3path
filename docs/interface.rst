@@ -448,6 +448,13 @@ This is different then PurePath since AWS S3 Service doesn't support symbolic li
 
 **NOTE:** All The methods below will raise `ValueError`_ if the path isn't absolute.
 
+PureS3Path.joinpath(*other)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+If the final element of ``other`` is a `PureVersionedS3Path`_ instance, the resulting object will
+also be a `PureVersionedS3Path`_ instance with ``version_id`` set to ``other[-1].version_id``.
+Otherwise, the resulting object will be a `PureS3Path`_ instance.
+
 PureS3Path.as_uri()
 ^^^^^^^^^^^^^^^^^^^
 
