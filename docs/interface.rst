@@ -568,7 +568,7 @@ This is a new class method.
 Division Operator with PureVersionedS3Path
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The division of `PureVersionedS3Path`_ instances will yield the following types:
+The division of `PureVersionedS3Path`_ instances with other objects will yield the following types:
 
 * ``PureVersionedS3Path / PureVersionedS3Path -> PureVersionedS3Path``
 * ``PureS3Path / PureVersionedS3Path -> PureVersionedS3Path``
