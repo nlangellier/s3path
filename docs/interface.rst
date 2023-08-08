@@ -53,8 +53,8 @@ AWS S3 Service:
 
 | pathsegments are specified similarly to `Path`_
 | version_id is a string that can be any valid `AWS S3 version identifier`_
-
-New in version 0.5.0
+|
+| New in version 0.5.0
 
 Methods:
 ========
@@ -477,8 +477,8 @@ A subclass of `PureS3Path`_, this path flavour represents AWS S3 Service semanti
 
 | pathsegments are specified similarly to `PurePath`_.
 | version_id is a string that can be any valid `AWS S3 version identifier`_
-
-New in version 0.5.0
+|
+| New in version 0.5.0
 
 PureS3Path has a similar behavior to `PurePosixPath`_, except for the below changes:
 ------------------------------------------------------------------------------------
